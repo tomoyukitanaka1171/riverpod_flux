@@ -20,29 +20,18 @@ class Todo with _$Todo implements ImmutableState {
   }) = _Todo;
 
   const Todo._();
-
-  void update({required String targetId, required String description, bool completed = false}) => copyWith(
-        description: description,
-        completed: completed,
-      );
 }
 
-class TodosStore extends StateNotifier<List<Todo>> {
-  TodosStore() : super([]);
+abstract class StateFlow<T extends List<ImmutableState>> extends StateNotifier<T> {
+  StateFlow() : super(<ImmutableState>[]);
+  
+  T get value => state;
 
-  void initialize() => state = [];
+  void update(T Function(T prev) updator) {
+    final newValue = updator(state);
+  };
+}
 
-  void addTodo(String todoId) {
-    state = [
-      for (final todo in state)
-        if (todo.id != todoId) todo,
-    ];
-  }
-
-  // void toggle(String todoId) {
-  //   state = [
-  //     for (final todo in state)
-  //       if (todo.id == todoId) todo.copyWith(completed: !todo.completed) else todo,
-  //   ];
-  // }
+class TodosStore extends StateFlow<Todo> {
+  TodosStore();
 }

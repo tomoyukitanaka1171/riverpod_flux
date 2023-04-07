@@ -4,7 +4,7 @@ import 'package:statenotifier_flux/stores/todo_store.dart';
 /// [Behavior] -> [Store]への単一フローのためメソッドの戻り値は[void]となる
 class TodosBehavior with Behavior {
   @override
-  final List<StateNotifier<List<ImmutableState>>> states;
+  final List<StateFlow<ImmutableState>> states;
 
   TodosBehavior({
     required TodosStore todosStore,
@@ -15,30 +15,24 @@ class TodosBehavior with Behavior {
       );
 
   /// うまくいかない
-  // void addTodo(Todo todo) {
-  //   effect((TodosStore prev) => prev.addTodo());
-  // }
+  void addTodo(String desc) => effect((Todo prev) => prev.copyWith(description: desc));
 }
 
 mixin Behavior {
-  List<StateNotifier<List<ImmutableState>>> get states;
+  List<StateFlow<ImmutableState>> get states;
 
-  void effect<T extends ImmutableState, MT extends StateNotifier<List<T>>>(List<T> Function(MT target) curr) {
+  void effect<T extends ImmutableState, MT extends StateFlow<T>>(T Function(T prev) updator) {
     states.whereType<MT>().forEach((s) {
+      final prev = s.value;
+      final newValue = updator(s.value);
+
       /// [StateNotifier]が前後比較してくれる
       // ignore: invalid_use_of_protected_member
-      s.state = curr(s);
+      s.update(updator);
     });
   }
 }
 
 abstract class ImmutableState {
   const ImmutableState();
-}
-
-abstract class StateFlow<T extends ImmutableState> extends StateNotifier<List<T>> {
-  StateFlow() : super([]);
-
-  T get value;
-  set value(T value);
 }
