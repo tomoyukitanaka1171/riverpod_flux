@@ -1,18 +1,12 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:statenotifier_flux/behavior/todo_behavior.dart';
 
 part 'todo_store.freezed.dart';
-
-/// 実質的なシングルトンとして扱える
-final todosProvider = StateNotifierProvider<TodosStore, List<Todo>>((ref) {
-  return TodosStore();
-});
 
 typedef Store<T> = StateNotifier<List<T>>;
 
 @freezed
-class Todo with _$Todo implements ImmutableState {
+class Todo with _$Todo {
   const factory Todo({
     @Default('') String id,
     @Default('') String description,
@@ -22,16 +16,32 @@ class Todo with _$Todo implements ImmutableState {
   const Todo._();
 }
 
-abstract class StateFlow<T extends List<ImmutableState>> extends StateNotifier<T> {
-  StateFlow() : super(<ImmutableState>[]);
-  
-  T get value => state;
+@freezed
+class TodoState with _$TodoState implements ImmutableState {
+  const factory TodoState({
+    @Default([]) List<Todo> todos,
+  }) = _TodoState;
 
-  void update(T Function(T prev) updator) {
-    final newValue = updator(state);
-  };
+  const TodoState._();
 }
 
-class TodosStore extends StateFlow<Todo> {
-  TodosStore();
+abstract class ImmutableState {
+  const ImmutableState();
+}
+
+abstract class StateFlow<T extends ImmutableState> extends StateNotifier<List<T>> {
+  StateFlow(this.initState) : super([initState]);
+
+  @override
+  List<T> get state;
+
+  T initState;
+
+  void update(T newState) {
+    state = [newState];
+  }
+}
+
+class TodosStore extends StateFlow<TodoState> {
+  TodosStore() : super(const TodoState(todos: [Todo()]));
 }

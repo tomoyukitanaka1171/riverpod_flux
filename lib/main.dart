@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:statenotifier_flux/behavior/todo_behavior.dart';
+import 'package:statenotifier_flux/stores/todo_store.dart';
+
+/// 実質的なシングルトンとして扱える
+final todoStoreProvider = StateNotifierProvider<TodosStore, List<TodoState>>((ref) {
+  return TodosStore();
+});
+final helloWorldProvider = StateProvider((ref) => 'hello');
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,7 +29,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends ConsumerWidget {
+class MyHomePage extends HookConsumerWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
@@ -43,14 +49,14 @@ class MyHomePage extends ConsumerWidget {
               'You have pushed the button this many times:',
             ),
             Text(
-              '$_counter',
+              '${ref.watch(todoStoreProvider).first.todos.first.completed}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: todosBehavior.addTodo(),
+        onPressed: () => todosBehavior.toggleCompleted('hoge'),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
