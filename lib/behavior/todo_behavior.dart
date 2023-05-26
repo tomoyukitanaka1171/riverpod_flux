@@ -15,16 +15,32 @@ class TodosBehavior with Behavior {
         todosStore: r.read(todoStoreProvider.notifier),
       );
 
-  void initialize(Todo todo) => effect((TodoState prev) => prev.copyWith(todos: [todo]));
+  void initialize(Todo todo) {
+    print('initialize');
+    effect((TodoState prev) => prev.copyWith(todos: Todos({todo.id: todo})));
+  }
 
-  void toggleCompleted(String todoId) => effect((TodoState prev) {
-        final targetTodo = prev.todos.firstWhere((t) => t.id == todoId);
-        if (targetTodo.completed) {
-          return prev.copyWith(todos: [...prev.todos, targetTodo.copyWith(completed: false)]);
-        } else {
-          return prev.copyWith(todos: [...prev.todos, targetTodo.copyWith(completed: false)]);
+  void add(Todo todo) {
+    print('add');
+    effect((TodoState prev) => prev.copyWith(todos: prev.todos.add(todo)));
+  }
+
+  void toggleCompleted(String todoId) {
+    print('toggleCompleted');
+    effect(
+      (TodoState prev) {
+        final targetTodo = prev.todos.findById(todoId);
+        if (targetTodo == null) {
+          return prev;
         }
-      });
+        if (targetTodo.completed) {
+          return prev.copyWith(todos: prev.todos.update(targetTodo.updateTodoStatus(false)));
+        } else {
+          return prev.copyWith(todos: prev.todos.update(targetTodo.updateTodoStatus(true)));
+        }
+      },
+    );
+  }
 
   // void toggle() => effect((Todo prev) {
   //       if (prev.completed) {
@@ -44,6 +60,8 @@ mixin Behavior {
     states.whereType<MT>().forEach((s) {
       // ignore: invalid_use_of_protected_member
       final newValue = updator(s.state.first);
+
+      print('toggle: ${s.state.first} to $newValue');
 
       /// [StateNotifier]が前後比較してくれる
       s.update(newValue);
