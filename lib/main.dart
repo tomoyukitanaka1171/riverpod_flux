@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:statenotifier_flux/behavior/todo_behavior.dart';
+import 'package:statenotifier_flux/data_sources/repository/books_repository.dart';
 import 'package:statenotifier_flux/screens/todos/add_todo/add_todo_dialog.dart';
 import 'package:statenotifier_flux/stores/todo_store.dart';
 
@@ -46,6 +47,10 @@ class MyHomePageConsumerState extends ConsumerState<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final todoState = ref.watch(todoStoreProvider).first.todos;
+
+    Future<void>.delayed(const Duration(seconds: 1), () async {
+      await BooksRepository().fetchBooks();
+    });
 
     return Scaffold(
       appBar: AppBar(
