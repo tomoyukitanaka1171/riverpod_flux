@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:statenotifier_flux/behavior/todo_behavior.dart';
+import 'package:statenotifier_flux/data_sources/graphql/graphql_client.dart';
 import 'package:statenotifier_flux/data_sources/repository/books_repository.dart';
 import 'package:statenotifier_flux/screens/todos/add_todo/add_todo_dialog.dart';
 import 'package:statenotifier_flux/stores/todo_store.dart';
@@ -10,6 +11,7 @@ final todoStoreProvider = StateNotifierProvider<TodosStore, List<TodoState>>((re
   return TodosStore();
 });
 final helloWorldProvider = StateProvider((ref) => 'hello');
+final graphqlClientProvider = StateProvider((ref) => createClient());
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -49,7 +51,8 @@ class MyHomePageConsumerState extends ConsumerState<MyHomePage> {
     final todoState = ref.watch(todoStoreProvider).first.todos;
 
     Future<void>.delayed(const Duration(seconds: 1), () async {
-      await BooksRepository().fetchBooks();
+      final books = await BooksRepository.fromRef(ref).fetchBooks();
+      print('$books');
     });
 
     return Scaffold(
